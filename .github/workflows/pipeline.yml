@@ -32,6 +32,7 @@ jobs:
       SPRING_DATASOURCE_USERNAME: user
       SPRING_DATASOURCE_PASSWORD: password
       SPRING_PROFILES_ACTIVE: postgres
+      SPRING_DOCKER_COMPOSE_SKIP_IN_TESTS: true
     steps:
       - uses: actions/checkout@v4
       - name: Run Tests
