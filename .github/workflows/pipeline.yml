@@ -14,17 +14,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Start Postgres with Docker Compose
+      - name: Start databases with Docker Compose
         run: docker compose up -d
 
       - name: Wait for Postgres to be ready
         run: |
           echo "Waiting for Postgres to be ready..."
-          until docker exec $(docker ps -qf "ancestor=postgres") pg_isready -U postgres; do
+          until docker exec $(docker ps -qf "ancestor=postgres:17.0") pg_isready -U petclinic; do
             echo "Postgres is unavailable - sleeping"
             sleep 5
           done
           echo "Postgres is ready!"
 
       - name: Run tests
-        run: mvn $MAVEN_CLI_OPTS test
+        run: mvn test
