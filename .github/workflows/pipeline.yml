@@ -1,0 +1,52 @@
+name: CI Pipeline
+
+on: push
+
+env:
+  MAVEN_CLI_OPTS: "-B -ntp"
+  MAVEN_IMAGE: "maven:3.8.5-openjdk-17"
+  DOCKER_IMAGE_MAIN: "dmartirosyan/main"
+  DOCKER_IMAGE_MR: "dmartirosyan/mr"
+
+jobs:
+  checkstyle:
+    runs-on: ubuntu-latest
+    container: maven:3.8.5-openjdk-17 
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Checkstyle
+        run: mvn $MAVEN_CLI_OPTS checkstyle:checkstyle
+      - name: Upload Checkstyle Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: checkstyle-report
+          path: target/checkstyle-result.xml
+
+  test:
+    needs: [checkstyle]
+    runs-on: ubuntu-latest
+    container: maven:3.8.5-openjdk-17
+    services:
+      postgres:
+        image: postgres:13
+        ports:
+          - 5432:5432
+        env:
+          POSTGRES_DB: petclinic
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+        options: >-
+          --health-cmd="pg_isready -U user -d petclinic"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+    env:
+      MAVEN_CLI_OPTS: "-B -ntp"
+      SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/petclinic
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_PROFILES_ACTIVE: postgres
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Tests
+        run: mvn $MAVEN_CLI_OPTS test
