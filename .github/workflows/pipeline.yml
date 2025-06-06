@@ -20,9 +20,17 @@ jobs:
       - name: Wait for Postgres to be ready
         run: |
           echo "Waiting for Postgres to be ready..."
-          until docker exec $(docker ps -qf "ancestor=postgres:17.0") pg_isready -U petclinic; do
+          retries=0
+          max_retries=30
+          until docker exec tttt-postgres-1 pg_isready -U petclinic; do
+            if [ $retries -ge $max_retries ]; then
+              echo "Postgres did not become ready in time"
+              docker logs tttt-postgres-1
+              exit 1
+            fi
             echo "Postgres is unavailable - sleeping"
             sleep 5
+            retries=$((retries + 1))
           done
           echo "Postgres is ready!"
 
