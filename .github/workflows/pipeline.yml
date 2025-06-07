@@ -35,4 +35,4 @@ jobs:
           echo "Postgres is ready!"
 
       - name: Run tests
-        run: mvn test
+        run: mvn test -X
